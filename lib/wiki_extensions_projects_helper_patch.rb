@@ -18,17 +18,26 @@
 require_dependency 'projects_helper'
 
 module ProjectsHelperMethodsWikiExtensions
-  def project_settings_tabs
-    tabs = super
-    action = {:name => 'wiki_extensions', 
-      :controller => 'wiki_extensions_settings', 
-      :action => :show, 
-      :partial => 'wiki_extensions_settings/show', 
-      :label => :wiki_extensions}
+  def self.prepended(base)
+    base.module_eval do
+      def project_settings_tabs_with_wiki_extensions
+        tabs = project_settings_tabs_without_wiki_extensions
+        action = {:name => 'wiki_extensions',
+          :controller => 'wiki_extensions_settings',
+          :action => :show,
+          :partial => 'wiki_extensions_settings/show',
+          :label => :wiki_extensions}
 
-    tabs << action if User.current.allowed_to?(action, @project)
+        tabs << action if User.current.allowed_to?(action, @project)
 
-    tabs
+        tabs
+      end
+   end
+
+    base.instance_eval do
+      alias_method :project_settings_tabs_without_wiki_extensions, :project_settings_tabs
+      alias_method :project_settings_tabs, :project_settings_tabs_with_wiki_extensions
+    end
   end
 end
 
